@@ -1,0 +1,186 @@
+/* Scanline CRT overlay */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.06),
+    rgba(0, 255, 0, 0.02),
+    rgba(0, 0, 255, 0.06)
+  );
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* CRT Screen Flicker */
+.crt-screen {
+  position: relative;
+  overflow: hidden;
+  animation: crt-flicker 0.15s infinite;
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.995; }
+  50% { opacity: 1; }
+  100% { opacity: 0.998; }
+}
+
+/* Glass panel background */
+.aperture-panel {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aperture-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.aperture-panel.blue::before { background-color: var(--portal-blue); }
+.aperture-panel.orange::before { background-color: var(--portal-orange); }
+.aperture-panel.green::before { background-color: var(--status-nominal); }
+.aperture-panel.red::before { background-color: var(--status-critical); }
+.aperture-panel.amber::before { background-color: var(--status-warning); }
+
+.aperture-panel.blue:hover {
+  border-color: var(--portal-blue);
+  box-shadow: 0 4px 16px rgba(0, 162, 255, 0.15);
+}
+.aperture-panel.orange:hover {
+  border-color: var(--portal-orange);
+  box-shadow: 0 4px 16px rgba(255, 123, 0, 0.15);
+}
+.aperture-panel.green:hover {
+  border-color: var(--status-nominal);
+  box-shadow: 0 4px 16px rgba(0, 255, 102, 0.1);
+}
+
+/* Retro Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Animations */
+@keyframes text-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink::after {
+  content: '█';
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--text-terminal);
+  animation: text-blink 1s infinite;
+}
+
+/* Status Indicator Dots */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.5;
+  animation: status-ping 1.5s infinite ease-in-out;
+}
+
+@keyframes status-ping {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.status-dot.nominal { background-color: var(--status-nominal); color: var(--status-nominal); }
+.status-dot.warning { background-color: var(--status-warning); color: var(--status-warning); }
+.status-dot.critical { background-color: var(--status-critical); color: var(--status-critical); }
+.status-dot.offline { background-color: var(--status-offline); color: var(--status-offline); }
+.status-dot.offline::after { animation: none; }
+
+/* Grid Viewport background for the editor */
+.editor-grid-bg {
+  background-color: var(--bg-primary);
+  background-image: 
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center center;
+}
+
+/* Aperture-style Header Bar with Tech Lines */
+.tech-header-line {
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--portal-blue) 0%, 
+    var(--portal-blue) 45%, 
+    var(--border-color) 45%, 
+    var(--border-color) 55%, 
+    var(--portal-orange) 55%, 
+    var(--portal-orange) 100%
+  );
+  width: 100%;
+}
+
+/* Terminal logging lines animation */
+.log-line {
+  animation: line-fade-in 0.25s ease-out forwards;
+}
+
+@keyframes line-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom badges */
+.alert-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+.alert-badge.danger { background: rgba(255, 59, 48, 0.15); color: var(--status-critical); border: 1px solid var(--status-critical); }
+.alert-badge.warning { background: rgba(255, 204, 0, 0.15); color: var(--status-warning); border: 1px solid var(--status-warning); }
+.alert-badge.success { background: rgba(0, 255, 102, 0.15); color: var(--status-nominal); border: 1px solid var(--status-nominal); }
+.alert-badge.info { background: rgba(0, 162, 255, 0.15); color: var(--portal-blue); border: 1px solid var(--portal-blue); }

@@ -1,0 +1,135 @@
+.boot-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.boot-terminal-window {
+  width: 90%;
+  max-width: 750px;
+  height: 80vh;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 255, 102, 0.05);
+}
+
+.boot-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.boot-status {
+  color: var(--status-nominal);
+  font-weight: bold;
+}
+
+.boot-log-viewport {
+  flex: 1;
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-y: auto;
+  color: var(--text-terminal);
+}
+
+.boot-log-line {
+  margin-bottom: 6px;
+  display: flex;
+}
+
+.log-prefix {
+  margin-right: 8px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.log-err {
+  color: var(--status-critical);
+}
+
+.log-warn {
+  color: var(--status-warning);
+}
+
+.boot-welcome-card {
+  padding: 30px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.aperture-svg-logo {
+  margin-bottom: 20px;
+  animation: logo-spin 20s linear infinite;
+}
+
+@keyframes logo-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.boot-app-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.boot-app-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 24px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.boot-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boot-progress-bar {
+  flex: 1;
+  height: 6px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  margin-right: 20px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.boot-progress-fill {
+  height: 100%;
+  background-color: var(--text-terminal);
+  transition: width 0.2s ease-out;
+  display: block;
+}

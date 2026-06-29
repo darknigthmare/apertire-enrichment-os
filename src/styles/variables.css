@@ -1,0 +1,56 @@
+:root {
+  /* Color Palette - Portal & Aperture Science Inspired */
+  --bg-primary: #0b0e11;
+  --bg-secondary: #12171c;
+  --bg-tertiary: #192027;
+  --bg-active: #212932;
+  
+  --border-color: #2a3541;
+  --border-glow: rgba(0, 162, 255, 0.15);
+  
+  /* Science / Portal accents */
+  --portal-blue: #00a2ff;
+  --portal-blue-glow: rgba(0, 162, 255, 0.4);
+  --portal-orange: #ff7b00;
+  --portal-orange-glow: rgba(255, 123, 0, 0.4);
+  
+  /* System status */
+  --status-nominal: #00ff66;
+  --status-nominal-glow: rgba(0, 255, 102, 0.3);
+  --status-warning: #ffcc00;
+  --status-warning-glow: rgba(255, 204, 0, 0.3);
+  --status-critical: #ff3b30;
+  --status-critical-glow: rgba(255, 59, 48, 0.3);
+  --status-offline: #8e8e93;
+  --status-offline-glow: rgba(142, 142, 147, 0.2);
+  
+  /* Text colors */
+  --text-primary: #e5f3ff;
+  --text-secondary: #8da4b4;
+  --text-muted: #576d7d;
+  --text-terminal: #00ff66; /* Retro green */
+  --text-alert: #ff7b00; /* Retro orange amber */
+  
+  /* Grid sizes & details */
+  --grid-line: rgba(141, 164, 180, 0.08);
+  
+  /* Typography */
+  --font-mono: 'Consolas', 'Courier New', Courier, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Layout sizes */
+  --sidebar-width: 250px;
+  --header-height: 56px;
+  --status-bar-height: 28px;
+}
+
+/* Reduced Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
