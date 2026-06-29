@@ -31,6 +31,11 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
   const [visibleEvents, setVisibleEvents] = useState<TestRunEvent[]>([]);
   const [progressVal, setProgressVal] = useState(0);
 
+  // Live 2D pathing animation coordinates states
+  const [subjectCoords, setSubjectCoords] = useState<{ x: number; y: number } | null>(null);
+  const [portalBeams, setPortalBeams] = useState<{ start: { x: number; y: number }; end: { x: number; y: number }; color: string }[]>([]);
+  const [laserBeams, setLaserBeams] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } }[]>([]);
+
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,16 +91,13 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
       tone,
     };
 
-    // Calculate final run result
     const runResult = runSimulatedTest(ch, sub, protocol);
     
-    // Setup simulation interface states
     setCurrentRun(runResult);
     setVisibleEvents([]);
     setIsSimulating(true);
     setProgressVal(0);
 
-    // Animate timeline logs incrementally (to feel like a live running script)
     let idx = 0;
     const interval = setInterval(() => {
       if (idx < runResult.timeline.length) {
@@ -103,7 +105,45 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
         setVisibleEvents((prev) => [...prev, ev]);
         setProgressVal(Math.round(((idx + 1) / runResult.timeline.length) * 100));
 
-        // Sound cues
+        // Animate 2D positions step by step
+        const entrance = ch.elements.find(e => e.type === "entrance");
+        const exit = ch.elements.find(e => e.type === "exit");
+        const cube = ch.elements.find(e => e.type === "cube" || e.type === "redirection_cube" || e.type === "companion_cube");
+        const button = ch.elements.find(e => e.type === "button" || e.type === "laser_receiver");
+
+        const path = [];
+        if (entrance) path.push({ x: entrance.x, y: entrance.y });
+        if (cube) path.push({ x: cube.x, y: cube.y });
+        if (button) path.push({ x: button.x, y: button.y });
+        if (exit) path.push({ x: exit.x, y: exit.y });
+
+        if (path.length > 0) {
+          const pathIdx = Math.min(path.length - 1, idx);
+          setSubjectCoords(path[pathIdx]);
+
+          // Portal beams lines drawing
+          if (idx > 0 && idx < runResult.timeline.length - 1 && (equipment.includes("portal_device") || equipment.includes("dual_portal"))) {
+            const panels = ch.elements.filter(e => e.type === "portalable_panel");
+            if (panels.length > 0) {
+              const panel1 = panels[0];
+              const panel2 = panels[1] || panels[0];
+              setPortalBeams([
+                { start: path[pathIdx], end: { x: panel1.x, y: panel1.y }, color: "var(--portal-blue)" },
+                ...(equipment.includes("dual_portal") ? [{ start: path[pathIdx], end: { x: panel2.x, y: panel2.y }, color: "var(--portal-orange)" }] : [])
+              ]);
+            }
+          } else {
+            setPortalBeams([]);
+          }
+        }
+
+        // Active laser lines drawing
+        const laserEmitter = ch.elements.find(e => e.type === "laser_emitter");
+        const laserReceiver = ch.elements.find(e => e.type === "laser_receiver");
+        if (laserEmitter && laserReceiver) {
+          setLaserBeams([{ start: { x: laserEmitter.x, y: laserEmitter.y }, end: { x: laserReceiver.x, y: laserReceiver.y } }]);
+        }
+
         if (ev.type === "success") {
           playSuccess();
         } else if (ev.type === "failure") {
@@ -116,7 +156,9 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
       } else {
         clearInterval(interval);
         setIsSimulating(false);
-        // Save to DB logs and runs
+        setPortalBeams([]);
+        setLaserBeams([]);
+        
         localDb.addRun(runResult);
         localDb.addLog(
           "sys_reactor", 
@@ -128,10 +170,8 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
     }, 1200);
   };
 
-  // Compile coordinates to draw line in SVG chart
   const getChartPoints = () => {
     if (visibleEvents.length === 0) return "";
-    
     const width = 300;
     const height = 120;
     const padding = 10;
@@ -154,6 +194,8 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
       .join(" ");
   };
 
+  const activeChamber = chambers.find((c) => c.id === selectedChamberId);
+
   return (
     <div className="test-runner-view log-line">
       
@@ -161,15 +203,12 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
         /* PHASE 1: COMPOSER DE PROTOCOLE */
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "20px" }}>
           
-          {/* Chamber & Subject Choice (6 cols) */}
           <div className="aperture-panel" style={{ gridColumn: "span 6" }}>
             <h3 style={{ margin: "0 0 16px 0", textTransform: "uppercase", fontSize: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
               1. Choix du Sujet & Environnement
             </h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              
-              {/* Select Chamber */}
               <div>
                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
                   Chambre Expérimentale
@@ -187,7 +226,6 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </select>
               </div>
 
-              {/* Select Subject */}
               <div>
                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
                   Matricule du Sujet
@@ -205,7 +243,6 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </select>
               </div>
 
-              {/* Subject quick details */}
               {selectedSubjectId && (
                 <div style={{ padding: "12px", border: "1px solid var(--border-color)", borderRadius: "4px", backgroundColor: "var(--bg-tertiary)", fontSize: "12px" }}>
                   <span style={{ fontWeight: "bold", color: "var(--text-primary)" }}>Observations : </span>
@@ -214,19 +251,15 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                   </span>
                 </div>
               )}
-
             </div>
           </div>
 
-          {/* Equipment & Protocol rules (6 cols) */}
           <div className="aperture-panel orange" style={{ gridColumn: "span 6" }}>
             <h3 style={{ margin: "0 0 16px 0", textTransform: "uppercase", fontSize: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
               2. Paramètres du Protocole Expérimental
             </h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              
-              {/* Allowed items checks */}
               <div>
                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
                   Équipements Autorisés
@@ -274,7 +307,6 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </div>
               </div>
 
-              {/* Tone settings */}
               <div>
                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
                   Tonalité des Annonces Haut-Parleurs
@@ -297,72 +329,213 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                   Lancer Simulation Expérimentale
                 </ApertureButton>
               </div>
-
             </div>
           </div>
 
         </div>
       ) : (
-        /* PHASE 2: RUNNER TIMELINE & CHARTS */
+        /* PHASE 2: RUNNER TIMELINE & CHARTS WITH LIVE 2D GRID BOARD */
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "20px" }}>
           
-          {/* Timeline Output Log (8 cols) */}
           <div className="aperture-panel" style={{ gridColumn: "span 8", display: "flex", flexDirection: "column", minHeight: "450px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
               <h3 style={{ margin: 0, textTransform: "uppercase", fontSize: "13px" }}>
-                Simulateur Temporel - Log Console
+                Console de Test Actif & Télémétrie
               </h3>
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
                 Progression : {progressVal}%
               </div>
             </div>
 
-            {/* scrolling log viewport */}
-            <div 
-              style={{ 
-                flex: 1, 
-                backgroundColor: "var(--bg-primary)",
-                border: "1px solid var(--border-color)",
-                padding: "16px",
-                fontFamily: "var(--font-mono)",
-                fontSize: "12.5px",
-                lineHeight: "1.6",
-                color: "var(--text-terminal)",
-                borderRadius: "4px",
-                overflowY: "auto",
-                maxHeight: "320px",
-                marginBottom: "16px"
-              }}
-            >
-              {visibleEvents.map((ev, i) => (
+            {/* Split layout: logs console on the left, visual grid on the right */}
+            <div style={{ display: "flex", gap: "16px", flex: 1, overflow: "hidden", marginBottom: "16px" }}>
+              
+              <div 
+                style={{ 
+                  flex: 1, 
+                  backgroundColor: "var(--bg-primary)",
+                  border: "1px solid var(--border-color)",
+                  padding: "16px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  lineHeight: "1.5",
+                  color: "var(--text-terminal)",
+                  borderRadius: "4px",
+                  overflowY: "auto",
+                  maxHeight: "340px",
+                }}
+              >
+                {visibleEvents.map((ev, i) => (
+                  <div 
+                    key={i} 
+                    className="log-line"
+                    style={{ 
+                      marginBottom: "4px",
+                      color: ev.type === "success" 
+                        ? "var(--status-nominal)" 
+                        : ev.type === "failure" 
+                        ? "var(--status-critical)" 
+                        : ev.type === "announcement"
+                        ? "var(--portal-orange)"
+                        : "var(--text-terminal)" 
+                    }}
+                  >
+                    <span style={{ color: "var(--text-muted)" }}>[{ev.time}s]</span> {ev.message}
+                  </div>
+                ))}
+                <div ref={consoleEndRef} />
+              </div>
+
+              {/* Visual 2D Replay Board */}
+              {activeChamber && (
                 <div 
-                  key={i} 
-                  className="log-line"
                   style={{ 
-                    marginBottom: "4px",
-                    color: ev.type === "success" 
-                      ? "var(--status-nominal)" 
-                      : ev.type === "failure" 
-                      ? "var(--status-critical)" 
-                      : ev.type === "announcement"
-                      ? "var(--portal-orange)"
-                      : "var(--text-terminal)" 
+                    flex: 1.2, 
+                    border: "1px solid var(--border-color)", 
+                    borderRadius: "4px",
+                    backgroundColor: "var(--bg-primary)",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px",
+                    overflow: "hidden"
                   }}
                 >
-                  <span style={{ color: "var(--text-muted)" }}>[{ev.time}s]</span> {ev.message}
+                  <div 
+                    className="editor-grid-bg"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      maxHeight: "340px",
+                      aspectRatio: `${activeChamber.width} / ${activeChamber.height}`,
+                      position: "relative",
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${activeChamber.width}, 1fr)`,
+                      gridTemplateRows: `repeat(${activeChamber.height}, 1fr)`,
+                      gap: "1px",
+                      border: "1px solid rgba(255,255,255,0.03)"
+                    }}
+                  >
+                    {/* Grid elements */}
+                    {Array.from({ length: activeChamber.height }).map((_, y) => 
+                      Array.from({ length: activeChamber.width }).map((_, x) => {
+                        const el = activeChamber.elements.find(e => e.x === x && e.y === y);
+                        const icons: Record<string, string> = {
+                          wall: "🧱", goo: "🧪", entrance: "🚪", exit: "🏁",
+                          button: "🔴", cube: "📦", companion_cube: "💖", turret: "🤖",
+                          laser_emitter: "🚨", laser_receiver: "🎯", portalable_panel: "⬜",
+                          non_portalable_panel: "⬛", faith_plate: "🔼", hard_light_bridge: "🌁",
+                          excursion_funnel: "🌀", repulsion_gel_source: "🔵", propulsion_gel_source: "🟠"
+                        };
+                        const emoji = el ? icons[el.type] || "⬜" : null;
+                        
+                        return (
+                          <div 
+                            key={`${x}-${y}`}
+                            style={{
+                              gridColumn: x + 1,
+                              gridRow: y + 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                              backgroundColor: el?.type === "wall" ? "var(--border-color)" : el?.type === "goo" ? "rgba(0,255,102,0.15)" : "transparent"
+                            }}
+                          >
+                            {emoji}
+                          </div>
+                        );
+                      })
+                    )}
+
+                    {/* Lasers and portals overlay */}
+                    <svg 
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        pointerEvents: "none",
+                        zIndex: 40
+                      }}
+                    >
+                      {portalBeams.map((beam, i) => {
+                        const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
+                        const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
+                        const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
+                        const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
+                        return (
+                          <line 
+                            key={i}
+                            x1={`${x1}%`}
+                            y1={`${y1}%`}
+                            x2={`${x2}%`}
+                            y2={`${y2}%`}
+                            stroke={beam.color}
+                            strokeWidth="2"
+                            strokeDasharray="4,4"
+                            style={{ filter: "drop-shadow(0 0 3px rgba(0,162,255,0.8))" }}
+                          />
+                        );
+                      })}
+
+                      {laserBeams.map((beam, i) => {
+                        const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
+                        const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
+                        const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
+                        const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
+                        return (
+                          <line 
+                            key={i}
+                            x1={`${x1}%`}
+                            y1={`${y1}%`}
+                            x2={`${x2}%`}
+                            y2={`${y2}%`}
+                            stroke="var(--status-critical)"
+                            strokeWidth="2"
+                            style={{ filter: "drop-shadow(0 0 2px var(--status-critical))" }}
+                          />
+                        );
+                      })}
+                    </svg>
+
+                    {/* Subject avatar */}
+                    {subjectCoords && (
+                      <div 
+                        style={{
+                          position: "absolute",
+                          left: `${(subjectCoords.x / activeChamber.width) * 100}%`,
+                          top: `${(subjectCoords.y / activeChamber.height) * 100}%`,
+                          width: `${100 / activeChamber.width}%`,
+                          height: `${100 / activeChamber.height}%`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "14px",
+                          zIndex: 50,
+                          backgroundColor: "rgba(0, 162, 255, 0.15)",
+                          borderRadius: "50%",
+                          border: "1.5px solid var(--portal-blue)",
+                          boxShadow: "0 0 6px var(--portal-blue-glow)",
+                          transition: "all 0.5s ease"
+                        }}
+                      >
+                        🏃
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ))}
-              <div ref={consoleEndRef} />
+              )}
             </div>
 
-            {/* Simulating progress bar */}
             {isSimulating && (
               <div className="boot-progress-bar" style={{ margin: 0 }}>
                 <span className="boot-progress-fill" style={{ width: `${progressVal}%` }}></span>
               </div>
             )}
 
-            {/* Post-simulation actions */}
             {!isSimulating && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
@@ -370,7 +543,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </span>
                 
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <ApertureButton variant="secondary" onClick={() => setCurrentRun(null)}>
+                  <ApertureButton variant="secondary" onClick={() => { setCurrentRun(null); setSubjectCoords(null); }}>
                     Nouveau Test
                   </ApertureButton>
                   <ApertureButton variant="blue" onClick={() => onNavigate("reports")}>
@@ -379,13 +552,9 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </div>
               </div>
             )}
-
           </div>
 
-          {/* Sarcastic Comment & Science Yield (4 cols) */}
           <div style={{ gridColumn: "span 4", display: "flex", flexDirection: "column", gap: "20px" }}>
-            
-            {/* Sarcasm box */}
             <div className="aperture-panel orange" style={{ minHeight: "180px", display: "flex", flexDirection: "column" }}>
               <h4 style={{ margin: "0 0 10px 0", textTransform: "uppercase", fontSize: "11px", color: "var(--portal-orange)", fontFamily: "var(--font-mono)" }}>
                 Rétroaction de l'IA
@@ -395,7 +564,6 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
               </p>
             </div>
 
-            {/* SVG yield plot */}
             <div className="aperture-panel" style={{ flex: 1, minHeight: "220px", display: "flex", flexDirection: "column" }}>
               <h4 style={{ margin: "0 0 10px 0", textTransform: "uppercase", fontSize: "11px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
                 Flux de Rendement de Données
@@ -403,12 +571,10 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
 
               <div style={{ flex: 1, position: "relative", backgroundColor: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: "4px", padding: "6px" }}>
                 <svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none">
-                  {/* Grid Lines */}
                   <line x1="0" y1="30" x2="320" y2="30" stroke="var(--grid-line)" strokeDasharray="2" />
                   <line x1="0" y1="60" x2="320" y2="60" stroke="var(--grid-line)" strokeDasharray="2" />
                   <line x1="0" y1="90" x2="320" y2="90" stroke="var(--grid-line)" strokeDasharray="2" />
                   
-                  {/* Line Chart */}
                   {visibleEvents.length > 1 && (
                     <polyline
                       fill="none"
@@ -425,7 +591,6 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 </div>
               </div>
             </div>
-
           </div>
 
         </div>

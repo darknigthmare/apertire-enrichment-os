@@ -4,6 +4,7 @@ import type { Chamber, ChamberElement, ElementType, ValidationIssue } from "../t
 import { ApertureButton } from "../components/ApertureButton";
 import { validateChamber, estimateSolvability, estimateHazard, estimateDifficulty } from "../simulation/validation";
 import { playSuccess, playBeep, playPortalOpen } from "../components/soundSynth";
+import { Chamber3DView } from "../components/Chamber3DView";
 
 interface ChamberEditorProps {
   chamberId: string;
@@ -39,6 +40,7 @@ export const ChamberEditor: React.FC<ChamberEditorProps> = ({ chamberId, onNavig
   const [selectedElement, setSelectedElement] = useState<ChamberElement | null>(null);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [isLinking, setIsLinking] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"2d" | "3d">("2d");
 
   useEffect(() => {
     const ch = localDb.getChamber(chamberId);
@@ -312,32 +314,59 @@ export const ChamberEditor: React.FC<ChamberEditorProps> = ({ chamberId, onNavig
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h3 style={{ margin: 0, textTransform: "uppercase", fontSize: "13px" }}>
-            Chambre {chamber.number} - Grid ({chamber.width}x{chamber.height})
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <h3 style={{ margin: 0, textTransform: "uppercase", fontSize: "13px" }}>
+              Chambre {chamber.number} - Grid ({chamber.width}x{chamber.height})
+            </h3>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <ApertureButton 
+                variant={previewMode === "2d" ? "blue" : "secondary"} 
+                style={{ padding: "3px 6px", fontSize: "9px" }} 
+                onClick={() => setPreviewMode("2d")}
+              >
+                2D Grid
+              </ApertureButton>
+              <ApertureButton 
+                variant={previewMode === "3d" ? "blue" : "secondary"} 
+                style={{ padding: "3px 6px", fontSize: "9px" }} 
+                onClick={() => {
+                  setPreviewMode("3d");
+                  playSuccess();
+                }}
+              >
+                3D Preview
+              </ApertureButton>
+            </div>
+          </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
             Difficulté : {chamber.difficulty}/10 | Solvabilité : {chamber.solvability}%
           </div>
         </div>
 
         {/* Viewport viewport */}
-        <div 
-          className="editor-grid-bg"
-          style={{ 
-            flex: 1, 
-            border: "1px solid var(--border-color)", 
-            borderRadius: "4px",
-            display: "grid",
-            gridTemplateColumns: `repeat(${chamber.width}, 1fr)`,
-            gridTemplateRows: `repeat(${chamber.height}, 1fr)`,
-            gap: "1px",
-            overflow: "auto",
-            minHeight: "350px",
-            padding: "8px"
-          }}
-        >
-          {gridCells}
-        </div>
+        {previewMode === "2d" ? (
+          <div 
+            className="editor-grid-bg"
+            style={{ 
+              flex: 1, 
+              border: "1px solid var(--border-color)", 
+              borderRadius: "4px",
+              display: "grid",
+              gridTemplateColumns: `repeat(${chamber.width}, 1fr)`,
+              gridTemplateRows: `repeat(${chamber.height}, 1fr)`,
+              gap: "1px",
+              overflow: "auto",
+              minHeight: "350px",
+              padding: "8px"
+            }}
+          >
+            {gridCells}
+          </div>
+        ) : (
+          <div style={{ flex: 1, border: "1px solid var(--border-color)", borderRadius: "4px", minHeight: "350px", overflow: "hidden" }}>
+            <Chamber3DView chamber={chamber} />
+          </div>
+        )}
 
         {/* Validation log details at bottom */}
         <div 
