@@ -19,6 +19,8 @@ import { LoreSafeArchives } from "./pages/LoreSafeArchives";
 import { Reporting } from "./pages/Reporting";
 import { Settings } from "./pages/Settings";
 import { ImportExport } from "./pages/ImportExport";
+import { PersonalityCores } from "./pages/PersonalityCores";
+import { TurretConsole } from "./pages/TurretConsole";
 
 function App() {
   const [isBooted, setIsBooted] = useState(false);
@@ -79,6 +81,10 @@ function App() {
         return <Settings onSettingsChange={handleRefreshSettings} />;
       case "import-export":
         return <ImportExport />;
+      case "cores":
+        return <PersonalityCores />;
+      case "turrets":
+        return <TurretConsole />;
       default:
         return <Dashboard onNavigate={handleNavigate} />;
     }
@@ -159,6 +165,8 @@ function App() {
               { id: "announcements", label: "Console Vocale", icon: "🗣️" },
               { id: "archives", label: "Archives Mémos", icon: "📁" },
               { id: "reports", label: "Rapporteurs", icon: "📝" },
+              { id: "cores", label: "Dock des Cœurs", icon: "🟢" },
+              { id: "turrets", label: "Console Tourelles", icon: "🤖" },
               { id: "import-export", label: "Sauvegarde & Import", icon: "💾" },
               { id: "settings", label: "Configuration IA", icon: "🔧" }
             ].map((page) => (

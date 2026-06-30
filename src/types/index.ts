@@ -196,6 +196,7 @@ export interface PersonaSettings {
   bootSequenceEnabled: boolean;
   scanlineEnabled: boolean;
   soundEnabled: boolean;
+  activeCores?: string[];
 }
 
 export interface ValidationIssue {

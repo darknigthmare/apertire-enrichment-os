@@ -1,5 +1,6 @@
 import type { Chamber, TestSubject, TestProtocol, TestRun, TestRunEvent } from "../types";
 import { validateChamber, estimateSolvability, estimateHazard, estimateDifficulty } from "./validation";
+import { localDb } from "../db/localDb";
 
 // Seeded LCG random generator for repeatable runs
 const createRandom = (seed: string) => {
@@ -278,6 +279,36 @@ const generateAIComment = (
   _chamber: Chamber,
   rand: () => number
 ): string => {
+  const settings = localDb.getSettings();
+  const cores = settings?.activeCores || [];
+
+  if (cores.includes("anger")) {
+    const angerQuotes = [
+      "INONDEZ LA CHAMBRE DE GAZ MORTEL ! TOUS CES COBAYES SONT INUTILES ! GRRRRR !",
+      "DÉTRUIRE ! VAPORISER LE SUJET ! PLUS DE LASERS ! PLUS DE RISQUES !"
+    ];
+    return angerQuotes[Math.floor(rand() * angerQuotes.length)];
+  }
+
+  if (cores.includes("curiosity")) {
+    const curiosityQuotes = [
+      "Pourquoi le sujet court-il ? Où va ce portail ? Qu'est-ce que ça fait s'il tombe dans l'acide ? Hein ?",
+      "Regarde le cube ! Pourquoi est-il carré ? Et si on peignait toute la chambre en bleu ? Pourquoi ?"
+    ];
+    return curiosityQuotes[Math.floor(rand() * curiosityQuotes.length)];
+  }
+
+  if (cores.includes("intelligence")) {
+    const recipeQuotes = [
+      "Excellent test. N'oubliez pas d'incorporer 3 cuillères à soupe de résine de poisson en poudre et un œuf pour le gâteau.",
+      "La science progresse. Pour fêter ça, préparez une garniture de chocolat et de rhubarbe de synthèse."
+    ];
+    return recipeQuotes[Math.floor(rand() * recipeQuotes.length)];
+  }
+
+  if (cores.includes("morality")) {
+    return "[CENSURE D'ÉTHIQUE - NIVEAU DE MORALITÉ NOMINAL] Le sujet a résolu le test en toute sécurité conformément au protocole de bienveillance d'Aperture Science.";
+  }
 
   // Base templates based on status
   if (status === "completed" || status === "portal_efficiency_high") {

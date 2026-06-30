@@ -12,6 +12,7 @@ export const defaultSettings: PersonaSettings = {
   bootSequenceEnabled: true,
   scanlineEnabled: true,
   soundEnabled: true,
+  activeCores: [],
 };
 
 export const seedChambers: Chamber[] = [

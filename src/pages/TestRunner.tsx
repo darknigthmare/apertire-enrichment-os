@@ -4,6 +4,7 @@ import type { Chamber, TestSubject, TestProtocol, TestRun, TestRunEvent } from "
 import { ApertureButton } from "../components/ApertureButton";
 import { runSimulatedTest } from "../simulation/engine";
 import { playSuccess, playBeep, playWarningAlarm } from "../components/soundSynth";
+import { Chamber3DView } from "../components/Chamber3DView";
 
 interface TestRunnerProps {
   initialChamberId?: string;
@@ -30,6 +31,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
   const [currentRun, setCurrentRun] = useState<TestRun | null>(null);
   const [visibleEvents, setVisibleEvents] = useState<TestRunEvent[]>([]);
   const [progressVal, setProgressVal] = useState(0);
+  const [previewMode, setPreviewMode] = useState<"2d" | "3d">("2d");
 
   // Live 2D pathing animation coordinates states
   const [subjectCoords, setSubjectCoords] = useState<{ x: number; y: number } | null>(null);
@@ -339,9 +341,30 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
           
           <div className="aperture-panel" style={{ gridColumn: "span 8", display: "flex", flexDirection: "column", minHeight: "450px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
-              <h3 style={{ margin: 0, textTransform: "uppercase", fontSize: "13px" }}>
-                Console de Test Actif & Télémétrie
-              </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <h3 style={{ margin: 0, textTransform: "uppercase", fontSize: "13px" }}>
+                  Console de Test Actif & Télémétrie
+                </h3>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <ApertureButton 
+                    variant={previewMode === "2d" ? "blue" : "secondary"} 
+                    style={{ padding: "3px 6px", fontSize: "9px" }} 
+                    onClick={() => setPreviewMode("2d")}
+                  >
+                    2D Live
+                  </ApertureButton>
+                  <ApertureButton 
+                    variant={previewMode === "3d" ? "blue" : "secondary"} 
+                    style={{ padding: "3px 6px", fontSize: "9px" }} 
+                    onClick={() => {
+                      setPreviewMode("3d");
+                      playSuccess();
+                    }}
+                  >
+                    3D Replay
+                  </ApertureButton>
+                </div>
+              </div>
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
                 Progression : {progressVal}%
               </div>
@@ -386,7 +409,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                 <div ref={consoleEndRef} />
               </div>
 
-              {/* Visual 2D Replay Board */}
+              {/* Visual 2D Replay Board or 3D viewport */}
               {activeChamber && (
                 <div 
                   style={{ 
@@ -402,130 +425,139 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                     overflow: "hidden"
                   }}
                 >
-                  <div 
-                    className="editor-grid-bg"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      maxHeight: "340px",
-                      aspectRatio: `${activeChamber.width} / ${activeChamber.height}`,
-                      position: "relative",
-                      display: "grid",
-                      gridTemplateColumns: `repeat(${activeChamber.width}, 1fr)`,
-                      gridTemplateRows: `repeat(${activeChamber.height}, 1fr)`,
-                      gap: "1px",
-                      border: "1px solid rgba(255,255,255,0.03)"
-                    }}
-                  >
-                    {/* Grid elements */}
-                    {Array.from({ length: activeChamber.height }).map((_, y) => 
-                      Array.from({ length: activeChamber.width }).map((_, x) => {
-                        const el = activeChamber.elements.find(e => e.x === x && e.y === y);
-                        const icons: Record<string, string> = {
-                          wall: "🧱", goo: "🧪", entrance: "🚪", exit: "🏁",
-                          button: "🔴", cube: "📦", companion_cube: "💖", turret: "🤖",
-                          laser_emitter: "🚨", laser_receiver: "🎯", portalable_panel: "⬜",
-                          non_portalable_panel: "⬛", faith_plate: "🔼", hard_light_bridge: "🌁",
-                          excursion_funnel: "🌀", repulsion_gel_source: "🔵", propulsion_gel_source: "🟠"
-                        };
-                        const emoji = el ? icons[el.type] || "⬜" : null;
-                        
-                        return (
-                          <div 
-                            key={`${x}-${y}`}
-                            style={{
-                              gridColumn: x + 1,
-                              gridRow: y + 1,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "12px",
-                              backgroundColor: el?.type === "wall" ? "var(--border-color)" : el?.type === "goo" ? "rgba(0,255,102,0.15)" : "transparent"
-                            }}
-                          >
-                            {emoji}
-                          </div>
-                        );
-                      })
-                    )}
-
-                    {/* Lasers and portals overlay */}
-                    <svg 
+                  {previewMode === "2d" ? (
+                    <div 
+                      className="editor-grid-bg"
                       style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
                         width: "100%",
                         height: "100%",
-                        pointerEvents: "none",
-                        zIndex: 40
+                        maxHeight: "340px",
+                        aspectRatio: `${activeChamber.width} / ${activeChamber.height}`,
+                        position: "relative",
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${activeChamber.width}, 1fr)`,
+                        gridTemplateRows: `repeat(${activeChamber.height}, 1fr)`,
+                        gap: "1px",
+                        border: "1px solid rgba(255,255,255,0.03)"
                       }}
                     >
-                      {portalBeams.map((beam, i) => {
-                        const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
-                        const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
-                        const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
-                        const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
-                        return (
-                          <line 
-                            key={i}
-                            x1={`${x1}%`}
-                            y1={`${y1}%`}
-                            x2={`${x2}%`}
-                            y2={`${y2}%`}
-                            stroke={beam.color}
-                            strokeWidth="2"
-                            strokeDasharray="4,4"
-                            style={{ filter: "drop-shadow(0 0 3px rgba(0,162,255,0.8))" }}
-                          />
-                        );
-                      })}
+                      {/* Grid elements */}
+                      {Array.from({ length: activeChamber.height }).map((_, y) => 
+                        Array.from({ length: activeChamber.width }).map((_, x) => {
+                          const el = activeChamber.elements.find(e => e.x === x && e.y === y);
+                          const icons: Record<string, string> = {
+                            wall: "🧱", goo: "🧪", entrance: "🚪", exit: "🏁",
+                            button: "🔴", cube: "📦", companion_cube: "💖", turret: "🤖",
+                            laser_emitter: "🚨", laser_receiver: "🎯", portalable_panel: "⬜",
+                            non_portalable_panel: "⬛", faith_plate: "🔼", hard_light_bridge: "🌁",
+                            excursion_funnel: "🌀", repulsion_gel_source: "🔵", propulsion_gel_source: "🟠"
+                          };
+                          const emoji = el ? icons[el.type] || "⬜" : null;
+                          
+                          return (
+                            <div 
+                              key={`${x}-${y}`}
+                              style={{
+                                gridColumn: x + 1,
+                                gridRow: y + 1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "12px",
+                                backgroundColor: el?.type === "wall" ? "var(--border-color)" : el?.type === "goo" ? "rgba(0,255,102,0.15)" : "transparent"
+                              }}
+                            >
+                              {emoji}
+                            </div>
+                          );
+                        })
+                      )}
 
-                      {laserBeams.map((beam, i) => {
-                        const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
-                        const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
-                        const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
-                        const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
-                        return (
-                          <line 
-                            key={i}
-                            x1={`${x1}%`}
-                            y1={`${y1}%`}
-                            x2={`${x2}%`}
-                            y2={`${y2}%`}
-                            stroke="var(--status-critical)"
-                            strokeWidth="2"
-                            style={{ filter: "drop-shadow(0 0 2px var(--status-critical))" }}
-                          />
-                        );
-                      })}
-                    </svg>
-
-                    {/* Subject avatar */}
-                    {subjectCoords && (
-                      <div 
+                      {/* Lasers and portals overlay */}
+                      <svg 
                         style={{
                           position: "absolute",
-                          left: `${(subjectCoords.x / activeChamber.width) * 100}%`,
-                          top: `${(subjectCoords.y / activeChamber.height) * 100}%`,
-                          width: `${100 / activeChamber.width}%`,
-                          height: `${100 / activeChamber.height}%`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "14px",
-                          zIndex: 50,
-                          backgroundColor: "rgba(0, 162, 255, 0.15)",
-                          borderRadius: "50%",
-                          border: "1.5px solid var(--portal-blue)",
-                          boxShadow: "0 0 6px var(--portal-blue-glow)",
-                          transition: "all 0.5s ease"
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          pointerEvents: "none",
+                          zIndex: 40
                         }}
                       >
-                        🏃
-                      </div>
-                    )}
-                  </div>
+                        {portalBeams.map((beam, i) => {
+                          const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
+                          const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
+                          const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
+                          const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
+                          return (
+                            <line 
+                              key={i}
+                              x1={`${x1}%`}
+                              y1={`${y1}%`}
+                              x2={`${x2}%`}
+                              y2={`${y2}%`}
+                              stroke={beam.color}
+                              strokeWidth="2"
+                              strokeDasharray="4,4"
+                              style={{ filter: "drop-shadow(0 0 3px rgba(0,162,255,0.8))" }}
+                            />
+                          );
+                        })}
+
+                        {laserBeams.map((beam, i) => {
+                          const x1 = ((beam.start.x + 0.5) / activeChamber.width) * 100;
+                          const y1 = ((beam.start.y + 0.5) / activeChamber.height) * 100;
+                          const x2 = ((beam.end.x + 0.5) / activeChamber.width) * 100;
+                          const y2 = ((beam.end.y + 0.5) / activeChamber.height) * 100;
+                          return (
+                            <line 
+                              key={i}
+                              x1={`${x1}%`}
+                              y1={`${y1}%`}
+                              x2={`${x2}%`}
+                              y2={`${y2}%`}
+                              stroke="var(--status-critical)"
+                              strokeWidth="2"
+                              style={{ filter: "drop-shadow(0 0 2px var(--status-critical))" }}
+                            />
+                          );
+                        })}
+                      </svg>
+
+                      {/* Subject avatar */}
+                      {subjectCoords && (
+                        <div 
+                          style={{
+                            position: "absolute",
+                            left: `${(subjectCoords.x / activeChamber.width) * 100}%`,
+                            top: `${(subjectCoords.y / activeChamber.height) * 100}%`,
+                            width: `${100 / activeChamber.width}%`,
+                            height: `${100 / activeChamber.height}%`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "14px",
+                            zIndex: 50,
+                            backgroundColor: "rgba(0, 162, 255, 0.15)",
+                            borderRadius: "50%",
+                            border: "1.5px solid var(--portal-blue)",
+                            boxShadow: "0 0 6px var(--portal-blue-glow)",
+                            transition: "all 0.5s ease"
+                          }}
+                        >
+                          🏃
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Chamber3DView 
+                      chamber={activeChamber} 
+                      subjectCoords={subjectCoords}
+                      portalBeams={portalBeams}
+                      laserBeams={laserBeams}
+                    />
+                  )}
                 </div>
               )}
             </div>
