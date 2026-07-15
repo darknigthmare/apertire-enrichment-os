@@ -1,15 +1,54 @@
 import React, { useState, useEffect, useRef } from "react";
 import { localDb } from "../db/localDb";
-import type { Chamber, TestSubject, TestProtocol, TestRun, TestRunEvent } from "../types";
+import type { Chamber, ElementType, TestSubject, TestProtocol, TestRun, TestRunEvent } from "../types";
 import { ApertureButton } from "../components/ApertureButton";
 import { runSimulatedTest } from "../simulation/engine";
 import { playSuccess, playBeep, playWarningAlarm } from "../components/soundSynth";
 import { Chamber3DView } from "../components/Chamber3DView";
+import { subjectPortraits } from "../data/visualAssets";
 
 interface TestRunnerProps {
   initialChamberId?: string;
   onNavigate: (page: string, params?: any) => void;
 }
+
+const ELEMENT_ICONS: Record<ElementType, string> = {
+  floor: "·",
+  wall: "🧱",
+  portalable_panel: "□",
+  non_portalable_panel: "■",
+  glass: "◇",
+  goo: "🧪",
+  emancipation_grill: "≋",
+  entrance: "🚪",
+  exit: "🏁",
+  button: "🔴",
+  cube: "📦",
+  companion_cube: "💖",
+  cube_dropper: "⬇",
+  turret: "🤖",
+  camera: "📹",
+  laser_emitter: "🚨",
+  laser_receiver: "🎯",
+  redirection_cube: "💎",
+  faith_plate: "🔼",
+  hard_light_bridge: "🌁",
+  excursion_funnel: "🌀",
+  funnel_reversal_button: "↩",
+  repulsion_gel_source: "🔵",
+  propulsion_gel_source: "🟠",
+  conversion_gel_source: "⚪",
+  cleanser: "💧",
+  moving_panel: "↔",
+  observation_window: "🪟",
+  incinerator: "🔥",
+  elevator: "⇅",
+  signage: "⚠",
+  monitor: "🖥",
+  damaged_panel: "💥",
+  vegetation: "🌿",
+  old_aperture_pipe: "〰",
+};
 
 export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavigate }) => {
   const [chambers, setChambers] = useState<Chamber[]>([]);
@@ -197,6 +236,8 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
   };
 
   const activeChamber = chambers.find((c) => c.id === selectedChamberId);
+  const activeSubject = subjects.find((subject) => subject.id === selectedSubjectId);
+  const activeSubjectPortrait = activeSubject ? subjectPortraits[activeSubject.id] : undefined;
 
   return (
     <div className="test-runner-view log-line">
@@ -445,14 +486,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                       {Array.from({ length: activeChamber.height }).map((_, y) => 
                         Array.from({ length: activeChamber.width }).map((_, x) => {
                           const el = activeChamber.elements.find(e => e.x === x && e.y === y);
-                          const icons: Record<string, string> = {
-                            wall: "🧱", goo: "🧪", entrance: "🚪", exit: "🏁",
-                            button: "🔴", cube: "📦", companion_cube: "💖", turret: "🤖",
-                            laser_emitter: "🚨", laser_receiver: "🎯", portalable_panel: "⬜",
-                            non_portalable_panel: "⬛", faith_plate: "🔼", hard_light_bridge: "🌁",
-                            excursion_funnel: "🌀", repulsion_gel_source: "🔵", propulsion_gel_source: "🟠"
-                          };
-                          const emoji = el ? icons[el.type] || "⬜" : null;
+                          const glyph = el ? ELEMENT_ICONS[el.type] : null;
                           
                           return (
                             <div 
@@ -467,7 +501,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                                 backgroundColor: el?.type === "wall" ? "var(--border-color)" : el?.type === "goo" ? "rgba(0,255,102,0.15)" : "transparent"
                               }}
                             >
-                              {emoji}
+                              {glyph}
                             </div>
                           );
                         })
@@ -543,10 +577,34 @@ export const TestRunner: React.FC<TestRunnerProps> = ({ initialChamberId, onNavi
                             borderRadius: "50%",
                             border: "1.5px solid var(--portal-blue)",
                             boxShadow: "0 0 6px var(--portal-blue-glow)",
+                            overflow: "hidden",
                             transition: "all 0.5s ease"
                           }}
                         >
-                          🏃
+                          {activeSubjectPortrait ? (
+                            <img
+                              src={activeSubjectPortrait}
+                              alt={`Portrait du sujet actif ${activeSubject?.alias ?? "inconnu"}`}
+                              loading="lazy"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                display: "block",
+                                objectFit: "cover",
+                                objectPosition: "center 28%",
+                              }}
+                            />
+                          ) : (
+                            <svg
+                              role="img"
+                              aria-label="Sujet actif"
+                              viewBox="0 0 24 24"
+                              style={{ width: "72%", height: "72%" }}
+                            >
+                              <circle cx="12" cy="7" r="3.2" fill="var(--portal-blue)" />
+                              <path d="M7 21v-4.2c0-3.2 2.1-5.8 5-5.8s5 2.6 5 5.8V21z" fill="var(--portal-blue)" />
+                            </svg>
+                          )}
                         </div>
                       )}
                     </div>

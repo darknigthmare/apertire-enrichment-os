@@ -5,6 +5,7 @@ import { ApertureButton } from "../components/ApertureButton";
 import { AlertBadge } from "../components/AlertBadge";
 import { ApertureModal } from "../components/ApertureModal";
 import { playSuccess } from "../components/soundSynth";
+import { subjectPortraits } from "../data/visualAssets";
 
 export const SubjectDatabase: React.FC = () => {
   const [subjects, setSubjects] = useState<TestSubject[]>([]);
@@ -126,25 +127,59 @@ export const SubjectDatabase: React.FC = () => {
       </div>
 
       {/* Grid of Subject Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: "20px" }}>
-        {filteredSubjects.map((s) => (
-          <div 
-            key={s.id} 
-            className={`aperture-panel ${s.type === "android" ? "blue" : s.type === "unknown" ? "red" : "orange"}`}
-            style={{ display: "flex", flexDirection: "column", minHeight: "280px" }}
-          >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))", gap: "20px" }}>
+        {filteredSubjects.map((s) => {
+          const portrait = subjectPortraits[s.id];
+
+          return (
+            <div
+              key={s.id}
+              className={`aperture-panel ${s.type === "android" ? "blue" : s.type === "unknown" ? "red" : "orange"}`}
+              style={{ display: "flex", flexDirection: "column", minHeight: "280px", overflow: "hidden" }}
+            >
+            {portrait && (
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "16 / 9",
+                  maxHeight: "180px",
+                  marginBottom: "14px",
+                  overflow: "hidden",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "3px",
+                  backgroundColor: "var(--bg-primary)",
+                }}
+              >
+                <img
+                  src={portrait}
+                  alt={`Portrait de dossier généré pour ${s.alias}`}
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center 30%",
+                  }}
+                />
+              </div>
+            )}
+
             {/* Title card */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--text-primary)" strokeWidth="2">
-                  {s.type === "human" ? (
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
-                  ) : s.type === "android" ? (
-                    <rect x="3" y="11" width="18" height="10" rx="2" />
-                  ) : (
-                    <path d="M12 2L2 22h20L12 2zm0 14h.01M12 10v3" stroke="var(--status-critical)" />
-                  )}
-                </svg>
+                {!portrait && (
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--text-primary)" strokeWidth="2" aria-hidden="true">
+                    {s.type === "human" ? (
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                    ) : s.type === "android" ? (
+                      <rect x="3" y="11" width="18" height="10" rx="2" />
+                    ) : (
+                      <path d="M12 2L2 22h20L12 2zm0 14h.01M12 10v3" stroke="var(--status-critical)" />
+                    )}
+                  </svg>
+                )}
                 <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-primary)" }}>{s.alias}</h3>
               </div>
               <AlertBadge 
@@ -219,8 +254,9 @@ export const SubjectDatabase: React.FC = () => {
               )}
 
             </div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* Creation Modal */}

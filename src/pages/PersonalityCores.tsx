@@ -3,6 +3,7 @@ import { localDb } from "../db/localDb";
 import { ApertureButton } from "../components/ApertureButton";
 import { playSuccess, playBeep, playWarningAlarm } from "../components/soundSynth";
 import type { PersonaSettings } from "../types";
+import { corePortraits } from "../data/visualAssets";
 
 interface CoreInfo {
   id: string;
@@ -13,15 +14,17 @@ interface CoreInfo {
   lore: string;
   vocalOutbursts: string[];
   emoji: string;
+  image: string;
 }
 
 const CORES: CoreInfo[] = [
   {
     id: "morality",
     name: "Cœur de Moralité",
-    color: "#27ae60",
-    glowColor: "rgba(39, 174, 96, 0.4)",
-    emoji: "🟢",
+    color: "#8d5cf6",
+    glowColor: "rgba(141, 92, 246, 0.4)",
+    emoji: "🟣",
+    image: corePortraits.morality,
     description: "Censure les impulsions agressives et régule l'éthique.",
     lore: "Installé d'urgence après l'activation de CLaDOS pour l'empêcher d'inonder la grille avec du gaz neurotoxique.",
     vocalOutbursts: [
@@ -33,9 +36,10 @@ const CORES: CoreInfo[] = [
   {
     id: "curiosity",
     name: "Cœur de Curiosité",
-    color: "#2980b9",
-    glowColor: "rgba(41, 128, 185, 0.4)",
-    emoji: "🔵",
+    color: "#ff8a1f",
+    glowColor: "rgba(255, 138, 31, 0.4)",
+    emoji: "🟠",
+    image: corePortraits.curiosity,
     description: "Pose des questions incessantes sur chaque composant géométrique.",
     lore: "Un noyau hyperactif programmé pour analyser tous les détails de l'environnement, sans aucune logique de préservation.",
     vocalOutbursts: [
@@ -47,9 +51,10 @@ const CORES: CoreInfo[] = [
   {
     id: "intelligence",
     name: "Cœur d'Intelligence / Recette",
-    color: "#d35400",
-    glowColor: "rgba(211, 84, 0, 0.4)",
-    emoji: "🟠",
+    color: "#2f9fff",
+    glowColor: "rgba(47, 159, 255, 0.4)",
+    emoji: "🔵",
+    image: corePortraits.intelligence,
     description: "Récite la recette officielle du gâteau d'Aperture Science.",
     lore: "Initialement conçu pour effectuer des calculs de trajectoires portalables complexes, mais s'est retrouvé obsédé par les desserts.",
     vocalOutbursts: [
@@ -61,9 +66,10 @@ const CORES: CoreInfo[] = [
   {
     id: "anger",
     name: "Cœur de Colère",
-    color: "#c0392b",
-    glowColor: "rgba(192, 57, 43, 0.4)",
+    color: "#e34848",
+    glowColor: "rgba(227, 72, 72, 0.4)",
     emoji: "🔴",
+    image: corePortraits.anger,
     description: "Génère des menaces vocales agressives et exige des tests létaux.",
     lore: "Un noyau survolté contenant les algorithmes de combat primitifs d'Aperture. Il ne communique que par grondements et cris de rage.",
     vocalOutbursts: [
@@ -154,7 +160,7 @@ export const PersonalityCores: React.FC = () => {
         </p>
 
         {/* Rack View */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", flex: 1 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: "16px", flex: 1 }}>
           {CORES.map((core) => {
             const isActive = activeCores.includes(core.id);
             return (
@@ -174,7 +180,37 @@ export const PersonalityCores: React.FC = () => {
                   position: "relative"
                 }}
                 onClick={() => setSelectedCoreId(core.id)}
+                onKeyDown={(event) => {
+                  if (event.currentTarget !== event.target) return;
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedCoreId(core.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Inspecter ${core.name}`}
               >
+                <img
+                  src={core.image}
+                  alt={`Illustration générée du ${core.name}`}
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    aspectRatio: "16 / 10",
+                    maxHeight: "150px",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                    border: `1px solid ${isActive ? core.color : "var(--border-color)"}`,
+                    borderRadius: "3px",
+                    opacity: isActive ? 1 : 0.78,
+                    filter: isActive ? "none" : "saturate(0.72) brightness(0.82)",
+                    transition: "all 0.25s ease",
+                  }}
+                />
+
                 {/* Core Eye circle header */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -241,16 +277,35 @@ export const PersonalityCores: React.FC = () => {
           </h4>
           
           {selectedCore ? (
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <span style={{ fontSize: "20px" }}>{selectedCore.emoji}</span>
-                <span style={{ fontWeight: "bold", fontSize: "13px" }}>{selectedCore.name}</span>
-              </div>
-              <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
-                <strong>Dossier Historique :</strong> {selectedCore.lore}
-              </p>
-              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                <strong>Statut Réseau :</strong> {activeCores.includes(selectedCore.id) ? "CONNECTÉ (DIRECTIVES COMPLIANTES)" : "HORS-LIGNE (DÉCONNECTÉ)"}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "14px", alignItems: "flex-start" }}>
+              <img
+                src={selectedCore.image}
+                alt={`Vue détaillée générée du ${selectedCore.name}`}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  display: "block",
+                  width: "clamp(112px, 35%, 170px)",
+                  aspectRatio: "1 / 1",
+                  objectFit: "cover",
+                  border: `1px solid ${selectedCore.color}`,
+                  borderRadius: "3px",
+                  boxShadow: `0 0 12px ${selectedCore.glowColor}`,
+                  flex: "1 1 112px",
+                  maxWidth: "170px",
+                }}
+              />
+              <div style={{ flex: "2 1 210px", minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "20px" }} aria-hidden="true">{selectedCore.emoji}</span>
+                  <span style={{ fontWeight: "bold", fontSize: "13px" }}>{selectedCore.name}</span>
+                </div>
+                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
+                  <strong>Dossier Historique :</strong> {selectedCore.lore}
+                </p>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  <strong>Statut Réseau :</strong> {activeCores.includes(selectedCore.id) ? "CONNECTÉ (DIRECTIVES COMPLIANTES)" : "HORS-LIGNE (DÉCONNECTÉ)"}
+                </div>
               </div>
             </div>
           ) : (

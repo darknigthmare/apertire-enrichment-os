@@ -12,26 +12,41 @@ interface ChamberEditorProps {
 }
 
 const PALETTE_ITEMS: { type: ElementType; label: string; icon: string }[] = [
+  { type: "floor", label: "Sol technique", icon: "·" },
   { type: "wall", label: "Mur non-portalable", icon: "🧱" },
   { type: "portalable_panel", label: "Panneau Portalable", icon: "⬜" },
   { type: "non_portalable_panel", label: "Panneau Inactif", icon: "⬛" },
+  { type: "glass", label: "Vitre d'observation", icon: "◇" },
   { type: "goo", label: "Acide Mortel", icon: "🧪" },
+  { type: "emancipation_grill", label: "Grille d'Émancipation", icon: "≋" },
   { type: "entrance", label: "Sas d'Entrée", icon: "🚪" },
   { type: "exit", label: "Sas de Sortie", icon: "🏁" },
   { type: "button", label: "Bouton Lesté", icon: "🔴" },
   { type: "cube", label: "Cube Lesté", icon: "📦" },
   { type: "companion_cube", label: "Cube Compagnon", icon: "💖" },
+  { type: "cube_dropper", label: "Distributeur de Cube", icon: "⬇" },
   { type: "turret", label: "Tourelle Sentinelle", icon: "🤖" },
+  { type: "camera", label: "Caméra de Supervision", icon: "📹" },
   { type: "laser_emitter", label: "Émetteur Laser", icon: "🚨" },
   { type: "laser_receiver", label: "Récepteur Laser", icon: "🎯" },
   { type: "redirection_cube", label: "Cube Réflecteur", icon: "💎" },
   { type: "faith_plate", label: "Plaque de Foi", icon: "🔼" },
   { type: "hard_light_bridge", label: "Pont de Lumière", icon: "🌁" },
   { type: "excursion_funnel", label: "Funnel de Gravité", icon: "🌀" },
+  { type: "funnel_reversal_button", label: "Inversion du Funnel", icon: "↩" },
   { type: "repulsion_gel_source", label: "Gel Répulsif (Bleu)", icon: "🔵" },
   { type: "propulsion_gel_source", label: "Gel Propulsif (Orange)", icon: "🟠" },
+  { type: "conversion_gel_source", label: "Gel de Conversion (Blanc)", icon: "⚪" },
+  { type: "cleanser", label: "Nettoyeur de Gel", icon: "💧" },
+  { type: "moving_panel", label: "Panneau Mobile", icon: "↔" },
+  { type: "observation_window", label: "Fenêtre d'Observation", icon: "🪟" },
+  { type: "incinerator", label: "Incinérateur", icon: "🔥" },
+  { type: "elevator", label: "Ascenseur de Chambre", icon: "⇅" },
+  { type: "signage", label: "Signalétique de Test", icon: "⚠" },
+  { type: "monitor", label: "Moniteur de Contrôle", icon: "🖥" },
   { type: "damaged_panel", label: "Panneau Cassé", icon: "💥" },
-  { type: "vegetation", label: "Flore Envahissante", icon: "🌿" }
+  { type: "vegetation", label: "Flore Envahissante", icon: "🌿" },
+  { type: "old_aperture_pipe", label: "Conduite Old Aperture", icon: "〰" }
 ];
 
 export const ChamberEditor: React.FC<ChamberEditorProps> = ({ chamberId, onNavigate }) => {

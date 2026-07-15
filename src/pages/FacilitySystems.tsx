@@ -3,6 +3,7 @@ import { localDb } from "../db/localDb";
 import type { FacilitySystem, SystemLogEntry } from "../types";
 import { ApertureButton } from "../components/ApertureButton";
 import { playSuccess, playWarningAlarm } from "../components/soundSynth";
+import { facilityVisuals } from "../data/visualAssets";
 
 export const FacilitySystems: React.FC = () => {
   const [systems, setSystems] = useState<FacilitySystem[]>([]);
@@ -165,8 +166,22 @@ export const FacilitySystems: React.FC = () => {
                 <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-primary)", textTransform: "uppercase" }}>
                   Contrôle : {selectedSystem.name}
                 </h3>
-                <span className={`status-dot ${selectedSystem.status}`}></span>
+                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span className={`status-dot ${selectedSystem.status}`}></span>
+                  <span style={{ fontSize: "11px", textTransform: "uppercase", color: `var(--status-${selectedSystem.status})` }}>
+                    {selectedSystem.status}
+                  </span>
+                </span>
               </div>
+
+              <img
+                src={facilityVisuals.overview}
+                alt=""
+                aria-hidden="true"
+                width={1200}
+                height={480}
+                className="facility-overview-visual"
+              />
 
               <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
                 {selectedSystem.description}
@@ -235,12 +250,23 @@ export const FacilitySystems: React.FC = () => {
               style={{ 
                 minHeight: "350px", 
                 display: "flex", 
+                flexDirection: "column",
                 alignItems: "center", 
                 justifyContent: "center",
+                gap: "16px",
                 color: "var(--text-muted)",
-                fontSize: "13px"
+                fontSize: "13px",
+                textAlign: "center"
               }}
             >
+              <img
+                src={facilityVisuals.overview}
+                alt=""
+                aria-hidden="true"
+                width={1200}
+                height={480}
+                className="facility-overview-visual"
+              />
               Sélectionnez un composant d'infrastructure pour ouvrir le terminal de contrôle.
             </div>
           )}

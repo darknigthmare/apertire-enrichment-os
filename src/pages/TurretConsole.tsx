@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ApertureButton } from "../components/ApertureButton";
 import { playSuccess, playBeep, playWarningAlarm } from "../components/soundSynth";
 import { localDb } from "../db/localDb";
+import { turretPortraits } from "../data/visualAssets";
 
 interface TurretInfo {
   id: string;
@@ -12,6 +13,30 @@ interface TurretInfo {
   chamber: string;
   logs: string[];
 }
+
+const TURRET_IMAGE_FILTERS: Record<TurretInfo["status"], string> = {
+  sleeping: "saturate(0.78) brightness(0.82)",
+  searching: "saturate(1.08) brightness(0.94) sepia(0.08)",
+  target_locked: "saturate(1.2) brightness(0.84) contrast(1.08)",
+  disassembled: "grayscale(0.45) saturate(0.45) brightness(0.68)",
+};
+
+const TURRET_IMAGE_OVERLAYS: Record<TurretInfo["status"], string> = {
+  sleeping: "linear-gradient(180deg, rgba(0, 162, 255, 0.04), rgba(0, 0, 0, 0.2))",
+  searching: "linear-gradient(180deg, rgba(255, 145, 0, 0.12), rgba(0, 0, 0, 0.18))",
+  target_locked: "linear-gradient(180deg, rgba(255, 45, 45, 0.18), rgba(25, 0, 0, 0.32))",
+  disassembled: "linear-gradient(180deg, rgba(120, 130, 140, 0.14), rgba(0, 0, 0, 0.38))",
+};
+
+const TURRET_STATUS_LABELS: Record<TurretInfo["status"], string> = {
+  sleeping: "au repos",
+  searching: "en balayage",
+  target_locked: "cible verrouillée",
+  disassembled: "hors service et démontée",
+};
+
+const getTurretPortrait = (status: TurretInfo["status"]) =>
+  status === "disassembled" ? turretPortraits.disassembled : turretPortraits.standard;
 
 const INITIAL_TURRETS: TurretInfo[] = [
   {
@@ -200,6 +225,41 @@ export const TurretConsole: React.FC = () => {
                   </span>
                 </div>
 
+                <div
+                  style={{
+                    position: "relative",
+                    height: "108px",
+                    overflow: "hidden",
+                    borderRadius: "4px",
+                    border: `1px solid ${statusColors[turret.status]}`,
+                    backgroundColor: "var(--bg-primary)",
+                  }}
+                >
+                  <img
+                    src={getTurretPortrait(turret.status)}
+                    alt={`Tourelle sentinelle ${turret.code}, ${TURRET_STATUS_LABELS[turret.status]}`}
+                    loading="lazy"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "block",
+                      objectFit: "cover",
+                      objectPosition: "center 45%",
+                      filter: TURRET_IMAGE_FILTERS[turret.status],
+                      transition: "filter 0.2s ease",
+                    }}
+                  />
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: TURRET_IMAGE_OVERLAYS[turret.status],
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+
                 {/* Ammo and Accuracy gauges */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div>
@@ -264,6 +324,40 @@ export const TurretConsole: React.FC = () => {
           
           {selectedTurret ? (
             <div style={{ fontSize: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div
+                style={{
+                  position: "relative",
+                  height: "164px",
+                  marginBottom: "6px",
+                  overflow: "hidden",
+                  borderRadius: "4px",
+                  border: "1px solid var(--border-color)",
+                  backgroundColor: "var(--bg-primary)",
+                }}
+              >
+                <img
+                  src={getTurretPortrait(selectedTurret.status)}
+                  alt={`Vue technique de la tourelle ${selectedTurret.code}`}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "block",
+                    objectFit: "cover",
+                    objectPosition: "center 42%",
+                    filter: TURRET_IMAGE_FILTERS[selectedTurret.status],
+                  }}
+                />
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: TURRET_IMAGE_OVERLAYS[selectedTurret.status],
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
               <div><strong>Matricule :</strong> {selectedTurret.code}</div>
               <div><strong>Module Acoustique :</strong> Synthèse Vocale Active</div>
               <div><strong>Capacité Munitions :</strong> 2000 cartouches blindées</div>

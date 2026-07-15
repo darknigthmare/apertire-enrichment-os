@@ -44,3 +44,63 @@ body {
 .grid-cell.cell-goo { background-color: rgba(0, 255, 102, 0.15) !important; box-shadow: inset 0 0 10px rgba(0,255,102,0.3); }
 .grid-cell.cell-portalable_panel { background-color: rgba(255,255,255,0.8) !important; }
 .grid-cell.cell-non_portalable_panel { background-color: rgba(20,25,30,0.9) !important; }
+
+.chamber-card-thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin: 0 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+}
+
+.dashboard-welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 42%);
+  gap: 18px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.dashboard-welcome-copy {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+}
+
+.dashboard-welcome-visual {
+  width: 100%;
+  min-height: 130px;
+  max-height: 180px;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 1px solid rgba(0, 162, 255, 0.22);
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+.facility-overview-visual {
+  width: 100%;
+  aspect-ratio: 5 / 2;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin: 0 0 16px;
+  border: 1px solid rgba(0, 162, 255, 0.22);
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+}
+
+@media (max-width: 900px) {
+  .dashboard-welcome {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-welcome-visual {
+    display: none;
+  }
+}

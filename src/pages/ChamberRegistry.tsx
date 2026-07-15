@@ -5,6 +5,7 @@ import { ApertureButton } from "../components/ApertureButton";
 import { AlertBadge } from "../components/AlertBadge";
 import { ApertureModal } from "../components/ApertureModal";
 import { playBeep, playSuccess } from "../components/soundSynth";
+import { chamberThumbnails } from "../data/visualAssets";
 
 interface ChamberRegistryProps {
   onNavigate: (page: string, params?: any) => void;
@@ -236,8 +237,9 @@ export const ChamberRegistry: React.FC<ChamberRegistryProps> = ({ onNavigate }) 
           Aucune chambre expérimentale ne correspond aux filtres appliqués.
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))", gap: "20px" }}>
           {filteredChambers.map((ch) => {
+            const thumbnail = chamberThumbnails[ch.id];
             
             return (
               <div 
@@ -246,12 +248,12 @@ export const ChamberRegistry: React.FC<ChamberRegistryProps> = ({ onNavigate }) 
                 style={{ display: "flex", flexDirection: "column", minHeight: "220px" }}
               >
                 {/* Card Title Bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                  <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "12px" }}>
+                  <div style={{ minWidth: 0 }}>
                     <span style={{ fontSize: "20px", fontWeight: "bold", fontFamily: "var(--font-mono)", color: "var(--text-primary)", marginRight: "8px" }}>
                       {ch.number}
                     </span>
-                    <h3 style={{ display: "inline", margin: 0, fontSize: "14px", fontWeight: "bold", color: "var(--text-primary)" }}>
+                    <h3 style={{ display: "inline", margin: 0, fontSize: "14px", fontWeight: "bold", color: "var(--text-primary)", overflowWrap: "anywhere" }}>
                       {ch.name}
                     </h3>
                   </div>
@@ -268,6 +270,18 @@ export const ChamberRegistry: React.FC<ChamberRegistryProps> = ({ onNavigate }) 
                     label={ch.status}
                   />
                 </div>
+
+                {thumbnail && (
+                  <img
+                    src={thumbnail}
+                    alt={`Apercu genere de la chambre ${ch.number} - ${ch.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    width={960}
+                    height={540}
+                    className="chamber-card-thumbnail"
+                  />
+                )}
 
                 {/* Subtitle / Style tag */}
                 <div style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "10px" }}>

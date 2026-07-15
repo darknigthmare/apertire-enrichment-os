@@ -1,7 +1,7 @@
 # APERTURE ENRICHMENT OPERATING SYSTEM (AEOS)
 ### *Central Core Test Chamber Management Console*
 
-> **IMPORTANT NOTICE:** Projet fan-made local et privé. Aucun asset officiel (logos, musiques, dialogues ou voix Valve/Portal) n'est inclus. L'application utilise exclusivement des styles CSS, structures SVG dynamiques et sons programmatiques générés localement par la Web Audio API.
+> **IMPORTANT NOTICE:** Projet fan-made local et privé. Aucun asset officiel (logos, musiques, dialogues, voix ou illustrations Valve/Portal) n'est inclus. Les illustrations raster originales ont été générées avec OpenAI pour ce projet fan-made ; l'interface conserve également ses styles CSS, structures SVG dynamiques et sons programmatiques générés localement par la Web Audio API.
 
 ---
 
@@ -94,6 +94,22 @@ Configurez des avertissements à l'aide de variables dynamiques et de phrases pr
 
 ### 💾 Sauvegarde & Restauration
 Copiez la structure complète de votre installation en JSON dans le presse-papier ou téléchargez le fichier de sauvegarde local pour le transférer.
+
+---
+
+## 🎨 Crédits visuels
+
+Les illustrations originales générées avec OpenAI sont regroupées dans `public/visuals/` :
+
+* `subjects/` : portraits des sujets et unités de test.
+* `cores/` : portraits des noyaux de personnalité.
+* `turrets/` : états visuels des tourelles.
+* `chambers/` : miniatures des chambres de test préconfigurées.
+* `dashboard/` : bannière de supervision centrale.
+* `facility/` : vue d'ensemble des systèmes d'infrastructure.
+* `social/` : visuel de partage du projet.
+
+Ces créations sont propres à ce projet fan-made et n'impliquent aucune affiliation ni approbation de Valve Corporation ou d'OpenAI.
 
 ---
 

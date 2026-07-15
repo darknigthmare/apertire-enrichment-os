@@ -3,6 +3,7 @@ import { localDb } from "../db/localDb";
 import type { FacilitySystem, Chamber, TestSubject, SystemLogEntry } from "../types";
 import { ApertureButton } from "../components/ApertureButton";
 import { playSuccess, playWarningAlarm } from "../components/soundSynth";
+import { dashboardVisuals } from "../data/visualAssets";
 
 interface DashboardProps {
   onNavigate: (page: string, params?: any) => void;
@@ -86,13 +87,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
     <div className="dashboard-view log-line">
       {/* Welcome Banner */}
-      <div className="aperture-panel blue" style={{ marginBottom: "20px" }}>
+      <div className="aperture-panel blue dashboard-welcome" style={{ marginBottom: "20px" }}>
+        <div className="dashboard-welcome-copy">
         <h2 style={{ margin: "0 0 8px 0", color: "var(--text-primary)", textTransform: "uppercase" }}>
           CONSOLE D'ADMINISTRATION DES SÉQUENCES D'ENRICHMENT
         </h2>
         <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "13.5px" }}>
           Bienvenue, Administrateur Central. Les sujets de test respirent encore. Statistiquement regrettable, opérationnellement utile.
         </p>
+        </div>
+        <img
+          src={dashboardVisuals.hero}
+          alt=""
+          aria-hidden="true"
+          width={1200}
+          height={480}
+          className="dashboard-welcome-visual"
+        />
       </div>
 
       {/* Grid Layout */}
